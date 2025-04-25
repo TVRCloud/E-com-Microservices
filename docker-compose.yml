@@ -1,15 +1,15 @@
-version: "1.0"
+version: "3.8"
 
 services:
   api-gateway:
     build: ./gateway
     ports:
-      - "3000:3000"
+      - "4000:4000"
     environment:
       - NODE_ENV=development
-    depends_on:
-      - product-service
-      - user-service
-      - order-service
-      - payment-service
-      - inventory-service
+    # depends_on:
+    #   - product-service
+    #   - user-service
+    #   - order-service
+    #   - payment-service
+    #   - inventory-service
