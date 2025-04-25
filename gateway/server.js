@@ -1,11 +1,13 @@
 import express from "express";
+import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { createProxyMiddleware } from "http-proxy-middleware";
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(cors());
