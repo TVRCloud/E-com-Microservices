@@ -7,9 +7,9 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-    depends_on:
-      - product-service
-      - user-service
-      - order-service
-      - payment-service
-      - inventory-service
+    # depends_on:
+    #   - product-service
+    #   - user-service
+    #   - order-service
+    #   - payment-service
+    #   - inventory-service
