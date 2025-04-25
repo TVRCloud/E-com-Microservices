@@ -4,7 +4,7 @@ services:
   api-gateway:
     build: ./gateway
     ports:
-      - "3000:3000"
+      - "4000:4000"
     environment:
       - NODE_ENV=development
     # depends_on:
