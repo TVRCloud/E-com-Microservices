@@ -14,9 +14,9 @@ app.use(morgan("combined"));
 app.use(express.json());
 
 // Routes configuration
-const routes = {
-  "/api/products": "http://product-service:3001",
-};
+// const routes = {
+//   "/api/products": "http://product-service:3001",
+// };
 
 // Setup proxy routes
 Object.entries(routes).forEach(([route, target]) => {
