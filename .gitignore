@@ -1,3 +1,4 @@
 /api-gateway/node_modules
 /api-gateway/.env
 .env
+/product-service/node_modules
