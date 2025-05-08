@@ -5,46 +5,47 @@ import { auth, adminAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
+const registerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  address: z.string().optional(),
+});
+
 // Register a new user
 router.post("/register", async (req, res) => {
-  try {
-    const { name, email, password, address } = req.body;
+  // 1) Validate shape
+  const parseResult = registerSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res
+      .status(400)
+      .json({ errors: parseResult.error.flatten().fieldErrors });
+  }
+  const { name, email, password, address } = parseResult.data;
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
+  try {
+    // 2) Check for existing user
+    if (await User.findOne({ email })) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Create new user
-    user = new User({
-      name,
-      email,
-      password,
-      address,
-    });
+    // 3) Hash password
+    const hashed = await bcrypt.hash(password, 12);
 
+    // 4) Create & save
+    const user = new User({ name, email, password: hashed, address });
     await user.save();
 
-    // Create JWT
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role,
-      },
-    };
-
-    jwt.sign(
-      payload,
+    // 5) Sign JWT
+    const token = jwt.sign(
+      { user: { id: user.id, role: user.role } },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" },
-      (err, token) => {
-        if (err) throw err;
-        res.status(201).json({ token });
-      }
+      { expiresIn: "24h" }
     );
-  } catch (error) {
-    console.error(error.message);
+
+    res.status(201).json({ token });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
