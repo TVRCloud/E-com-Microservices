@@ -1,13 +1,84 @@
+version: "3.8"
+
 services:
+  # API Gateway
   api-gateway:
-    build: ./gateway
+    build: ./api-gateway
     ports:
-      - "4000:4000"
-    environment:
-      - NODE_ENV=development
+      - "6000:6000"
+    env_file:
+      - ./api-gateway/.env
+    depends_on:
+      - product-service
+      - user-service
+      - cart-service
+      - order-service
+    networks:
+      - ecom-network
+    restart: always
+
+  # Product Service
+  product-service:
+    build: ./product-service
+    env_file:
+      - ./product-service/.env
     # depends_on:
-    #   - product-service
-    #   - user-service
-    #   - order-service
-    #   - payment-service
-    #   - inventory-service
+    #   - mongodb
+    networks:
+      - ecom-network
+    restart: always
+
+  # User Service
+  user-service:
+    build: ./user-service
+    env_file:
+      - ./user-service/.env
+    # depends_on:
+    #   - mongodb
+    networks:
+      - ecom-network
+    restart: always
+
+  # Cart Service
+  cart-service:
+    build: ./cart-service
+    env_file:
+      - ./cart-service/.env
+    depends_on:
+      # - mongodb
+      - product-service
+    networks:
+      - ecom-network
+    restart: always
+
+  # Order Service
+  order-service:
+    build: ./order-service
+    env_file:
+      - ./order-service/.env
+    depends_on:
+      # - mongodb
+      - product-service
+      - user-service
+      - cart-service
+    networks:
+      - ecom-network
+    restart: always
+
+  # MongoDB
+  # mongodb:
+  #   image: mongo:latest
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #   networks:
+  #     - ecom-network
+  #   restart: always
+
+networks:
+  ecom-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:

@@ -9,6 +9,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "Order Service is running" });
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -21,11 +26,6 @@ mongoose
 
 // Routes
 app.use("/api/orders", orderRoutes);
-
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "Order Service is running" });
-});
 
 app.listen(PORT, () => {
   console.log(`Order Service running on port ${PORT}`);

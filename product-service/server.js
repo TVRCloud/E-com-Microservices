@@ -7,7 +7,12 @@ import productRoutes from "./routes/productRoutes.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.PORT;
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "Product Service is running" });
+});
 
 // Middleware
 app.use(cors());
@@ -21,11 +26,6 @@ mongoose
 
 // Routes
 app.use("/api/products", productRoutes);
-
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "Product Service is running" });
-});
 
 app.listen(PORT, () => {
   console.log(`Product Service running on port ${PORT}`);
