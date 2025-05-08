@@ -1,8 +1,9 @@
 - Closes #issue_number
 
 **Description**
+-
 
-- **Checklist**
+**Checklist**
 
 - [ ] I have completed all the tasks mentioned in issue.
 - [ ] I have run yarn build before pushing changes.
