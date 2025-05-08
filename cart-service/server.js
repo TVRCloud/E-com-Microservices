@@ -2,9 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import userRoutes from "./routes/userRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 
 dotenv.config();
 
@@ -22,13 +20,13 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
-app.use("/api/users", userRoutes);
+app.use("/api/cart", cartRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "User Service is running" });
+  res.status(200).json({ status: "Cart Service is running" });
 });
 
 app.listen(PORT, () => {
-  console.log(`User Service running on port ${PORT}`);
+  console.log(`Cart Service running on port ${PORT}`);
 });
