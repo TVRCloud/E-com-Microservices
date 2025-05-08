@@ -2,6 +2,8 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { auth, adminAuth } from "../middleware/auth.js";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 const router = express.Router();
 
@@ -14,6 +16,8 @@ const registerSchema = z.object({
 
 // Register a new user
 router.post("/register", async (req, res) => {
+  console.log(req.body);
+
   // 1) Validate shape
   const parseResult = registerSchema.safeParse(req.body);
   if (!parseResult.success) {

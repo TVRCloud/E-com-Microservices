@@ -3,35 +3,29 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
-
-dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT;
 
-// ─── 1) Health endpoint before JSON parser ─────────────────────────────────────
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "User Service is running" });
-});
-
-// ─── 2) Only apply JSON parsing on mutating methods ────────────────────────────
+dotenv.config();
 app.use(cors());
-app.use((req, res, next) => {
-  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
-    return express.json()(req, res, next);
-  }
-  next();
+
+// 2) Health check (no body-parser)
+app.get("/health", (req, res) => {
+  return res.status(200).json({ status: "User Service is running" });
 });
 
-// ─── 3) MongoDB connection ────────────────────────────────────────────────────
+app.use(express.json());
+
+// 3) JSON parsing *only* for /api/users
+app.use("/api/users", userRoutes);
+
+// 4) MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// ─── 4) Routes ─────────────────────────────────────────────────────────────────
-app.use("/api/users", userRoutes);
-
+// 5) Start
 app.listen(PORT, () => {
   console.log(`User Service running on port ${PORT}`);
 });
