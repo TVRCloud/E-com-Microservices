@@ -2,7 +2,7 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { auth, adminAuth } from "../middleware/auth.js";
-import bcrypt from "bcryptjs";
+import CryptoJS from "crypto-js";
 import { z } from "zod";
 
 const router = express.Router();
@@ -14,39 +14,37 @@ const registerSchema = z.object({
   address: z.string().optional(),
 });
 
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+function generateSalt() {
+  return CryptoJS.lib.WordArray.random(16).toString();
+}
+
+function hashWithSalt(password, salt) {
+  return CryptoJS.SHA256(password + salt).toString();
+}
+
 // Register a new user
 router.post("/register", async (req, res) => {
-  console.log(req.body);
-
-  // 1) Validate shape
-  const parseResult = registerSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res
-      .status(400)
-      .json({ errors: parseResult.error.flatten().fieldErrors });
-  }
-  const { name, email, password, address } = parseResult.data;
-
+  const parse = registerSchema.safeParse(req.body);
+  if (!parse.success)
+    return res.status(400).json({ errors: parse.error.flatten().fieldErrors });
+  const { name, email, password, address } = parse.data;
   try {
-    // 2) Check for existing user
-    if (await User.findOne({ email })) {
+    if (await User.findOne({ email }))
       return res.status(400).json({ message: "User already exists" });
-    }
-
-    // 3) Hash password
-    const hashed = await bcrypt.hash(password, 12);
-
-    // 4) Create & save
-    const user = new User({ name, email, password: hashed, address });
-    await user.save();
-
-    // 5) Sign JWT
+    const salt = generateSalt();
+    const hash = hashWithSalt(password, salt);
+    const stored = `${salt}:${hash}`;
+    const user = await User.create({ name, email, password: stored, address });
     const token = jwt.sign(
       { user: { id: user.id, role: user.role } },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
-
     res.status(201).json({ token });
   } catch (err) {
     console.error(err);
@@ -56,40 +54,25 @@ router.post("/register", async (req, res) => {
 
 // Login user
 router.post("/login", async (req, res) => {
+  const parse = loginSchema.safeParse(req.body);
+  if (!parse.success)
+    return res.status(400).json({ errors: parse.error.flatten().fieldErrors });
+  const { email, password } = parse.data;
   try {
-    const { email, password } = req.body;
-
-    // Check if user exists
     const user = await User.findOne({ email });
-    if (!user) {
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    const [salt, storedHash] = user.password.split(":");
+    const hash = hashWithSalt(password, salt);
+    if (hash !== storedHash)
       return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    // Create JWT
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role,
-      },
-    };
-
-    jwt.sign(
-      payload,
+    const token = jwt.sign(
+      { user: { id: user.id, role: user.role } },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
+      { expiresIn: "24h" }
     );
-  } catch (error) {
-    console.error(error.message);
+    res.json({ token });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
