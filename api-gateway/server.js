@@ -26,7 +26,6 @@ const PORT = env.PORT;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
 
 // ─── 3. PROXY FACTORY ────────────────────────────────────────────────────────────
 function makeProxy(path, target, rewriteTo) {
@@ -48,11 +47,19 @@ function makeProxy(path, target, rewriteTo) {
 // ─── 4. PROXIES ───────────────────────────────────────────────────────────────────
 app.use(
   "/api/products",
-  makeProxy("/api/products", env.PRODUCT_SERVICE_URL, "")
+  makeProxy("/api/products", env.PRODUCT_SERVICE_URL, "/api/products")
 );
-app.use("/api/users", makeProxy("/api/users", env.USER_SERVICE_URL, ""));
-app.use("/api/cart", makeProxy("/api/cart", env.CART_SERVICE_URL, ""));
-app.use("/api/orders", makeProxy("/api/orders", env.ORDER_SERVICE_URL, ""));
+app.use(
+  "/api/users",
+  makeProxy("/api/users", env.USER_SERVICE_URL, "/api/users")
+);
+app.use("/api/cart", makeProxy("/api/cart", env.CART_SERVICE_URL, "/api/cart"));
+app.use(
+  "/api/orders",
+  makeProxy("/api/orders", env.ORDER_SERVICE_URL, "/api/orders")
+);
+
+app.use(express.json());
 
 // ─── 5. HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
